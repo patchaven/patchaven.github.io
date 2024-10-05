@@ -4,24 +4,11 @@
   
   
   <entry>
-    <title>created_new_post</title>
-    <link href="/2024/10/05/created-new-post/"/>
-    <url>/2024/10/05/created-new-post/</url>
-    
-    <content type="html"><![CDATA[<h2 id="尝试一下各种写法"><a href="#尝试一下各种写法" class="headerlink" title="尝试一下各种写法"></a>尝试一下各种写法</h2><h3 id="标签插件"><a href="#标签插件" class="headerlink" title="标签插件"></a>标签插件</h3><ul><li>引用书上的句子<blockquote><p>Do not just seek happiness for yourself. Seek happiness for all. Through kindness. Through mercy.</p><footer><strong>David Levithan</strong><cite>Wide Awake</cite></footer></blockquote></li><li>引用网络上的文章<blockquote><p>Every interaction is both precious and an opportunity to delight.</p><footer><strong>Seth Godin</strong><cite><a href="http://sethgodin.typepad.com/seths_blog/2009/07/welcome-to-island-marketing.html">Welcome to Island Marketing</a></cite></footer></blockquote></li><li>代码块（有说明和网址的）<figure class="highlight nginx"><figcaption><span>awk</span><a href="https://www.runoob.com/linux/linux-comm-awk.html">awk_runoob</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">awk</span> <span class="hljs-string">&#x27;&#123;print <span class="hljs-variable">$1</span>, <span class="hljs-variable">$2</span>&#125;&#x27;</span> file<br></code></pre></td></tr></table></figure></li></ul><h3 id="插入图片"><a href="#插入图片" class="headerlink" title="插入图片"></a>插入图片</h3><ul><li><p>访问全局资源文件夹<br><img src="/img/icons/Target.png"></p></li><li><p>用markdown嵌入图片<br><img src="/2024/10/05/created-new-post/try.png"></p></li></ul>]]></content>
-    
-    
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>new post</title>
+    <title>hello world</title>
     <link href="/2024/10/05/hello-world/"/>
     <url>/2024/10/05/hello-world/</url>
     
-    <content type="html"><![CDATA[<h2 id="try"><a href="#try" class="headerlink" title="try"></a>try</h2><h3 id="title"><a href="#title" class="headerlink" title="title"></a>title</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ conda activate blog<br></code></pre></td></tr></table></figure>]]></content>
+    <content type="html"><![CDATA[<h3 id="mood"><a href="#mood" class="headerlink" title="mood:"></a>mood:</h3><p><em>陷入一种小时候拿到一个漂亮本子却一时不知道要在上面写什么的期待和踌躇感。</em>   </p><blockquote><p>sorry but 本人的所有开头大都如此潦草 </p></blockquote><p>人为给自己创造了一个新需求，随便放点。主要是一些笔记【hope so】，这位小姐最好不要把这里也搞成自己的ego和坏情绪随意发射地、、</p>]]></content>
     
     
     
