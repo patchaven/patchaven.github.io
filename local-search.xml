@@ -4,11 +4,30 @@
   
   
   <entry>
+    <title>为什么python输出在out文件里不显示啊！！</title>
+    <link href="/2024/12/10/flush_slurm/"/>
+    <url>/2024/12/10/flush_slurm/</url>
+    
+    <content type="html"><![CDATA[<h1 id="此竟然为第一篇">此竟然为第一篇、</h1><blockquote><p>其实断断续续有五篇草稿但最后还是先把捡来的东西发了、、、</p></blockquote><p>为什么投完任务之后我的进度输出不显示在out文件里啊！！——来自：要处理多个样品本来以为一晚上肯定结束早上上工输入squeue后发现仍遥遥无期终于在18个小时后认为等待是高风险【主要还是老师降临视察后感到大祸临头】于是加了两条输出意图监控进度但发现1小时过去out文件干净得如同脑子的一位</p><p>被光盘头糊弄两个来回后发现咕狗给我的答案才是正确的，实践后痛斥光盘头得到以下总结，之后请留意：</p><h2 id="是缓冲区">是缓冲区！</h2><p>Python 的 <code>print()</code>函数将内容输出到标准输出（通常是终端或文件），但是它并不是立即将内容写入屏幕或文件中。为了提高效率，Python会将输出内容缓存起来，然后在适当的时候（如缓冲区满时）才将这些内容一次性地输出。</p><blockquote><p>输出缓冲区的三种方式：</p><ol type="1"><li><strong>行缓冲</strong> ：当输出中包含换行符（例如<code>print("Hello")</code>）时，Python会自动刷新缓冲区并输出内容。通常在交互式环境（如终端）中，<code>print()</code>会及时显示。</li><li><strong>全缓冲</strong> ：对于文件和重定向到文件的标准输出，Python默认会使用全缓冲模式，即当缓冲区满时才会写入文件。这意味着如果你在文件中输出，直到缓冲区满或者程序结束，才会将内容写入文件。</li><li><strong>无缓冲</strong> ：无缓冲模式下，<code>print()</code>函数会立即将输出内容写入文件或显示到终端。你可以通过设置 Python的输出流为无缓冲来避免缓冲的问题。</li></ol></blockquote><h2 id="缓冲区为什么导致此问题">缓冲区为什么导致此问题</h2><p>在提交作业时（比如使用 <code>sbatch</code>），Slurm会将标准输出和标准错误输出重定向到文件中。如果 Python使用了缓冲输出，而脚本没有结束或者没有写入换行符，缓冲区的内容可能不会被及时写入输出文件。这样，你就无法在日志文件中看到<code>print</code> 输出。</p><h2id="解决办法虽然都是一回事但仍然摆出三条like-why因为是笔记">解决办法（虽然都是一回事但仍然摆出三条，likewhy（因为是笔记</h2><ol type="1"><li>显式刷新缓冲区： 可以通过在 <code>print()</code> 语句后面添加flush=True 来强制 Python 在每次输出时刷新缓冲区。例如：</li></ol><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;sample_name&#125;</span> processed&quot;</span>, flush=<span class="hljs-literal">True</span>)<br></code></pre></td></tr></table></figure><p>这样确保每次<code>print()</code>输出都会刷新缓冲区，从而输出到out文件里</p><ol start="2" type="1"><li>用 sys.stdout.flush()： 也可以显式地使用<code>sys.stdout.flush()</code>来刷新缓冲区。这可以在脚本的任何地方调用，以确保输出被及时刷新到标准输出。例如：</li></ol><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> sys<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;sample_name&#125;</span> processed&quot;</span>)<br>sys.stdout.flush()  <span class="hljs-comment"># 强制刷新缓冲区</span><br></code></pre></td></tr></table></figure><ol start="3" type="1"><li>禁用缓冲：如果要在所有输出中都禁用缓冲，则可以直接在运行脚本时使用-u参数，让python以无缓冲模式运行</li></ol><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">python -u my_script.py<br></code></pre></td></tr></table></figure><ol start="4" type="1"><li>使用日志模块：<em>(怎么回事不是只有三条吗！)(因为和上面三个不一样)</em>可以考虑用python的<code>logging</code>模块<em>(没用过)</em>，此模块允许你记录调试、信息、警告、错误和致命错误<em>(wow)</em>等不同级别日志，可以配置其使得输出立即写入文件/定期刷新</li></ol><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> logging<br><br>logging.basicConfig(level=logging.DEBUG, <span class="hljs-built_in">format</span>=<span class="hljs-string">&#x27;%(asctime)s - %(message)s&#x27;</span>, handlers=[logging.StreamHandler(), logging.FileHandler(<span class="hljs-string">&#x27;job_output.log&#x27;</span>)])<br>logging.debug(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;sample_name&#125;</span> processed&quot;</span>)<br><span class="hljs-comment"># 谁看懂了、</span><br></code></pre></td></tr></table></figure><h2 id="结束-退朝">结束 退朝</h2>]]></content>
+    
+    
+    <categories>
+      
+      <category>note</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>hello world</title>
     <link href="/2024/10/05/hello-world/"/>
     <url>/2024/10/05/hello-world/</url>
     
-    <content type="html"><![CDATA[<h3 id="mood"><a href="#mood" class="headerlink" title="mood:"></a>mood:</h3><p><em>陷入一种小时候拿到一个漂亮本子却一时不知道要在上面写什么的期待和踌躇感。</em></p><blockquote><p>sorry but 本人的所有开头大都如此潦草</p></blockquote><p>人为给自己创造了一个新需求，随便放点。</p><p>主要是一些笔记【hope so】，这位小姐最好不要把这里也搞成自己的ego和坏情绪随意发射地、、</p>]]></content>
+    <content type="html"><![CDATA[<h3 id="mood">mood:</h3><p><em>陷入一种小时候拿到一个漂亮本子却一时不知道要在上面写什么的期待和踌躇感。</em></p><blockquote><p>sorry but 本人的所有开头大都如此潦草</p></blockquote><p>人为给自己创造了一个新需求，随便放点。</p><p>主要是一些笔记【hopeso】，这位小姐最好不要把这里也搞成自己的ego和坏情绪随意发射地、、</p>]]></content>
     
     
     <categories>
