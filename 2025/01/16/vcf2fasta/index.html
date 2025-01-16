@@ -22,12 +22,12 @@
     <meta name="description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两侧的序列。 作为存储变异信息的文件格式，vcf文件保存的信息可以说是位点信息。从位点信息到序列信息，需要做到的就是在检测变异时所用到的参考">
 <meta property="og:type" content="article">
 <meta property="og:title" content="vcf2fasta">
-<meta property="og:url" content="https://patchaven.github.io/2025/01/15/vcf2fasta/index.html">
+<meta property="og:url" content="https://patchaven.github.io/2025/01/16/vcf2fasta/index.html">
 <meta property="og:site_name" content="patchaven">
 <meta property="og:description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两侧的序列。 作为存储变异信息的文件格式，vcf文件保存的信息可以说是位点信息。从位点信息到序列信息，需要做到的就是在检测变异时所用到的参考">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-01-15T10:40:55.432Z">
-<meta property="article:modified_time" content="2025-01-15T10:40:55.432Z">
+<meta property="article:published_time" content="2025-01-16T02:04:20.732Z">
+<meta property="article:modified_time" content="2025-01-16T02:04:20.732Z">
 <meta property="article:author" content="ph-bear">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -236,8 +236,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-01-15 18:40" pubdate>
-          2025年1月15日 晚上
+        <time datetime="2025-01-16 10:04" pubdate>
+          2025年1月16日 上午
         </time>
       </span>
     
@@ -359,9 +359,8 @@ write all alleles separated with '/'</p>
 <p>我自己批量处理vcf的一段代码</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs bash">/#!/bin/bash<br><span class="hljs-comment">#SBATCH --job-name=          # 作业名称</span><br><span class="hljs-comment">#SBATCH --output=        # 标准输出文件</span><br><span class="hljs-comment">#SBATCH --error=         # 标准错误文件</span><br><span class="hljs-comment">#SBATCH --time=                     # 运行时间（格式：HH:MM:SS）</span><br><span class="hljs-comment">#SBATCH --ntasks=1                          # 分配任务数</span><br><span class="hljs-comment">#SBATCH --cpus-per-task=4                   # 每个任务分配的CPU数量（根据需求调整）</span><br><span class="hljs-comment">#SBATCH --mem=16G                           # 分配内存（根据需求调整）</span><br><br><br><span class="hljs-comment"># 设置脚本在遇到错误时停止</span><br><span class="hljs-built_in">set</span> -e<br><br><span class="hljs-comment"># 样品文件路径</span><br>SAMPLE_FILE=<span class="hljs-string">&quot;/path/to/sample/file&quot;</span><br><br><span class="hljs-comment"># VCF 输入文件路径</span><br>VCF_INPUT=<span class="hljs-string">&quot;/path/to/vcf&quot;</span><br><br><span class="hljs-comment"># 基因组参考序列路径</span><br>REFERENCE_GENOME=<span class="hljs-string">&quot;/path/to/fna&quot;</span><br><br><span class="hljs-comment"># JVarkit 工具路径</span><br>JVARKIT_JAR=<span class="hljs-string">&quot;/path/to/jvarkit.jar&quot;</span><br><br><span class="hljs-comment"># 输出目录（可选，建议统一输出到一个目录）</span><br>OUTPUT_DIR=<span class="hljs-string">&quot;/path/to/output/dir&quot;</span><br><span class="hljs-built_in">mkdir</span> -p <span class="hljs-string">&quot;<span class="hljs-variable">$OUTPUT_DIR</span>&quot;</span><br><br><span class="hljs-comment"># 读取每个样品并处理</span><br><span class="hljs-keyword">while</span> IFS= <span class="hljs-built_in">read</span> -r SAMPLE || [[ -n <span class="hljs-string">&quot;<span class="hljs-variable">$SAMPLE</span>&quot;</span> ]]; <span class="hljs-keyword">do</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;开始处理样品: <span class="hljs-variable">$SAMPLE</span>&quot;</span><br><br>    <span class="hljs-comment"># 步骤 1: 使用 bcftools 提取样品 VCF</span><br>    bcftools view -Ov -s <span class="hljs-string">&quot;<span class="hljs-variable">$SAMPLE</span>&quot;</span> <span class="hljs-string">&quot;<span class="hljs-variable">$VCF_INPUT</span>&quot;</span> -o <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>.vcf&quot;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;生成 <span class="hljs-variable">$&#123;SAMPLE&#125;</span>.vcf&quot;</span><br><br>    <span class="hljs-comment"># 步骤 2: 使用 GATK 选择变异 (主要是想取每个样品的变异)</span><br>    gatk SelectVariants -V <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>.vcf&quot;</span> --exclude-non-variants -O <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>_variant.vcf&quot;</span><br>    <span class="hljs-comment">#echo &quot;生成 $&#123;SAMPLE&#125;_variant.vcf&quot;</span><br><br>    <span class="hljs-comment"># 步骤 3: 使用 JVarkit 提取 flanking regions</span><br>    java -jar <span class="hljs-string">&quot;<span class="hljs-variable">$JVARKIT_JAR</span>&quot;</span> biostar251649 \<br>        -R <span class="hljs-string">&quot;<span class="hljs-variable">$REFERENCE_GENOME</span>&quot;</span> \<br>        <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>.vcf&quot;</span> -n 50 &gt; <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>_flank.vcf&quot;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;生成 <span class="hljs-variable">$&#123;SAMPLE&#125;</span>_flank.vcf&quot;</span><br><br>    <span class="hljs-comment"># 步骤 4: 使用 JVarkit 生成 FASTA 文件</span><br>    <span class="hljs-comment"># 如果改了上下游长度，这里也记得改</span><br>    java -jar <span class="hljs-string">&quot;<span class="hljs-variable">$JVARKIT_JAR</span>&quot;</span> bioalcidaejdk \<br>        -F VCF -e <span class="hljs-string">&#x27;stream().forEach(V-&gt;println(&quot;&gt;&quot;+V.getContig()+&quot;:&quot;+V.getStart()+&quot;\n&quot;+V.getAttribute(&quot;SEQ5_50&quot;)+&quot;[&quot;+V.getAlleles().stream().map(A-&gt;A.getDisplayString()).collect(Collectors.joining(&quot;/&quot;))+&quot;]&quot;+V.getAttribute(&quot;SEQ3_50&quot;)));&#x27;</span> \<br>        <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>_flank.vcf&quot;</span> &gt; <span class="hljs-string">&quot;<span class="hljs-variable">$&#123;OUTPUT_DIR&#125;</span>/<span class="hljs-variable">$&#123;SAMPLE&#125;</span>_flank.fasta&quot;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;生成 <span class="hljs-variable">$&#123;SAMPLE&#125;</span>_flank.fasta&quot;</span><br><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;完成处理样品: <span class="hljs-variable">$SAMPLE</span>&quot;</span><br>    <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;-----------------------------------------&quot;</span><br><br><span class="hljs-keyword">done</span> &lt; <span class="hljs-string">&quot;<span class="hljs-variable">$SAMPLE_FILE</span>&quot;</span><br><br><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;所有样品处理完成！&quot;</span><br></code></pre></td></tr></table></figure>
 <h3 id="vcf2fasta">vcf2fasta</h3>
-<pre><code class="hljs">我猜这个应该是之前用得比较多的一个……？但不知道之前大家用来干什么。和上面的包的主要区别是这个包会根据gff文件里面的基因组特征提取序列，所以这个包的序列提取是以基因组特征为主的，和上面以多态性位点为主不同。
-
-翻找自己的文件发现早就把使用此包的代码删掉了，因为当时用了之后结果……【前情提要：当时的需求是取所有样品某个基因的序列，在有测序数据的前提下其实可以用组装数据来做但我没有！所以就先试着根据有的群体vcf文件和参考序列来取了】不能说是错吧，可能和用的gff文件里面注释有关系，取出来的蛋白质编码基因不是起始密码子开头，影响了后续的计算！回首过往觉得如果要解决的话应该是回头确认gff文件对目标基因的注释到底是从哪开始，对应的具体序列又是什么。虽然软件对CDS的inframe是有参数设定的，但我需要整个基因！当时因为太赶了最后通过最简单也是最难的【问师兄要组装好的序列】解决了呵呵。所以后续如果还需要使用请注意。</code></pre>
+<p>我猜这个应该是之前用得比较多的一个……？但不知道之前大家用来干什么。和上面的包的主要区别是这个包会根据gff文件里面的基因组特征提取序列，所以这个包的序列提取是以基因组特征为主的，和上面以多态性位点为主不同。</p>
+<p>翻找自己的文件发现早就把使用此包的代码删掉了，因为当时用了之后结果……【前情提要：当时的需求是取所有样品某个基因的序列，在有测序数据的前提下其实可以用组装数据来做但我没有！所以就先试着根据有的群体vcf文件和参考序列来取了】不能说是错吧，可能和用的gff文件里面注释有关系，取出来的蛋白质编码基因不是起始密码子开头，影响了后续的计算！回首过往觉得如果要解决的话应该是回头确认gff文件对目标基因的注释到底是从哪开始，对应的具体序列又是什么。虽然软件对CDS的inframe是有参数设定的，但我需要整个基因！当时因为太赶了最后通过最简单也是最难的【问师兄要组装好的序列】解决了呵呵。所以后续如果还需要使用请注意。</p>
 <p>怎么用：</p>
 <ol type="1">
 <li><p>准备参考序列，需要参考基因组的fa文件和gff文件。参考基因组的fa文件需要用samtools进行index；如果你的gff文件非常有个人特色的话，去github看看符不符合软件的要求。vcf文件也要index，但用tabix。</p>
@@ -421,7 +420,7 @@ target="_blank" rel="noopener" href="https://github.com/santiagosnchez/vcf2fasta
   <div class="license-box my-3">
     <div class="license-title">
       <div>vcf2fasta</div>
-      <div>https://patchaven.github.io/2025/01/15/vcf2fasta/</div>
+      <div>https://patchaven.github.io/2025/01/16/vcf2fasta/</div>
     </div>
     <div class="license-meta">
       
@@ -433,7 +432,7 @@ target="_blank" rel="noopener" href="https://github.com/santiagosnchez/vcf2fasta
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2025年1月15日</div>
+          <div>2025年1月16日</div>
         </div>
       
       
