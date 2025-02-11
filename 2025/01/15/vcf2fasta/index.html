@@ -19,15 +19,15 @@
   <meta name="author" content="ph-bear">
   <meta name="keywords" content="">
   
-    <meta name="description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两侧的序列。 作为存储变异信息的文件格式，vcf文件保存的信息可以说是位点信息。从位点信息到序列信息，需要做到的就是在检测变异时所用到的参考">
+    <meta name="description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  TL;DR 根据需要的fasta内容选软件，本文关心：  上下游n bp 多态性位点所在元件整条序列  不行的话找师兄师姐老师要序列吧、 这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两">
 <meta property="og:type" content="article">
 <meta property="og:title" content="vcf2fasta">
 <meta property="og:url" content="https://patchaven.github.io/2025/01/15/vcf2fasta/index.html">
 <meta property="og:site_name" content="patchaven">
-<meta property="og:description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两侧的序列。 作为存储变异信息的文件格式，vcf文件保存的信息可以说是位点信息。从位点信息到序列信息，需要做到的就是在检测变异时所用到的参考">
+<meta property="og:description" content="intro  太好了！女孩只有在ddl迫近的时候才会想起来写这些、 其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的 所以又在捡！  TL;DR 根据需要的fasta内容选软件，本文关心：  上下游n bp 多态性位点所在元件整条序列  不行的话找师兄师姐老师要序列吧、 这是在干什么 我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-01-14T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-02-08T13:26:50.023Z">
+<meta property="article:modified_time" content="2025-02-11T02:44:53.244Z">
 <meta property="article:author" content="ph-bear">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -259,7 +259,7 @@
         
         
         
-          17 分钟
+          9 分钟
         
       </span>
     
@@ -316,6 +316,13 @@
 <p>其实有很多篇但不知为何有种一次就要搞篇大的但其实真的发了的只有一篇捡来的</p>
 <p>所以又在捡！</p>
 </blockquote>
+<h2 id="tldr">TL;DR</h2>
+<p>根据需要的fasta内容选软件，本文关心：</p>
+<ol type="1">
+<li>上下游n bp</li>
+<li>多态性位点所在元件整条序列</li>
+</ol>
+<p>不行的话找师兄师姐老师要序列吧、</p>
 <h2 id="这是在干什么">这是在干什么</h2>
 <p><strong>我们现在有一个存储了群体变异信息的vcf文件，但由于各种原因和下游应用，需要取出变异位点两侧的序列。</strong></p>
 <p>作为存储变异信息的文件格式，vcf文件保存的信息可以说是位点信息。从位点信息到序列信息，需要做到的就是在检测变异时所用到的参考基因组里定位到相应位点，再按照后续对这个序列的操作目的来取包含这个位点的上下游序列(意思是你是想取这个多态性位点所在的基因/CDS或者什么特定的片段，还是你只是关心这个位点的邻居们都是些什么货色)。很简单的思路！不太确定自己写的工作量有多少，但既然别人都写过了为什么不拿、什么都写只会让你成为一个很厉害的写代码的我希望抱大腿的人！</p>
