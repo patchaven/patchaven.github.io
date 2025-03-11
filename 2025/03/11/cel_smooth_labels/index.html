@@ -1,0 +1,855 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/icons/Target.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="ph-bear">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="intro  本次写得很烂、dky 可能是最近身体欠佳吧，，肉体状态很影响精神状态进而拖累产出的一位女孩。  TL;DR 如果你不知道为什么非得在掩码语言模型训练里面用inputs_embeds的话，我祝福你成功因为我没成功。当你改好了datacollator使得未被掩码的向量都有统一的target向量，在算交叉熵的时候记得把reduction设置成none，算出loss之后根据你的target向">
+<meta property="og:type" content="article">
+<meta property="og:title" content="向量的掩码训练 -- 交叉熵&amp;软标签">
+<meta property="og:url" content="https://patchaven.github.io/2025/03/11/cel_smooth_labels/index.html">
+<meta property="og:site_name" content="patchaven">
+<meta property="og:description" content="intro  本次写得很烂、dky 可能是最近身体欠佳吧，，肉体状态很影响精神状态进而拖累产出的一位女孩。  TL;DR 如果你不知道为什么非得在掩码语言模型训练里面用inputs_embeds的话，我祝福你成功因为我没成功。当你改好了datacollator使得未被掩码的向量都有统一的target向量，在算交叉熵的时候记得把reduction设置成none，算出loss之后根据你的target向">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-11T08:08:04.896Z">
+<meta property="article:author" content="ph-bear">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>向量的掩码训练 -- 交叉熵&amp;软标签 - patchaven</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"patchaven.github.io","root":"/","version":"1.9.8","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":"63fd1025b507ed16c095540ece0646cf","google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?63fd1025b507ed16c095540ece0646cf";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 35vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>patchaven</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>链接</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/show.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.6)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">向量的掩码训练 -- 交叉熵&软标签</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-11 00:00" pubdate>
+          2025年3月11日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">向量的掩码训练 -- 交叉熵&amp;软标签</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="intro">intro</h2>
+<blockquote>
+<p>本次写得很烂、dky
+可能是最近身体欠佳吧，，肉体状态很影响精神状态进而拖累产出的一位女孩。</p>
+</blockquote>
+<h2 id="tldr">TL;DR</h2>
+<p>如果你不知道为什么非得在掩码语言模型训练里面用inputs_embeds的话，我祝福你成功因为我没成功。当你改好了datacollator使得未被掩码的向量都有统一的target向量，在算交叉熵的时候记得把reduction设置成none，算出loss之后根据你的target向量将未被掩码的向量对应的loss值去掉之后再求平均进而再反向传播。如果只关心这个操作的话直接拉到最后看吧因为前面全是废话、</p>
+<h2 id="什么问题----解决问题">什么问题 -- 解决问题</h2>
+<p>其实并没有一开始就知道自己的问题是什么所以当时只是走到哪里算哪里，但写文总不能如此没有条理吧！所以先小小总结一番，原来是长版tldr！</p>
+<p>在做什么：在做掩码语言模型的训练，但每个位点的输入不是经过分词器处理得到的token
+id，而是自行编码的四维向量。对于每个位点，训练模型输出一个四维logit值，这个四维logit向量做softmax计算后和对应的原始四维向量计算交叉熵损失值（pytorch的CrossEntropyLoss函数整合了这两个操作，后续简称该函数为cel）。</p>
+<blockquote>
+<p>额外烧烤：但！需要说明的是这里的自行编码四维向量只有有限种可能。在掩码训练任务中，我希望模型可以根据上下文的向量来预测出被掩码位置的向量是什么，即可以把其看作一个分类问题。但似乎也不是传统意义上的软分类问题……？搜索了一下<a
+target="_blank" rel="noopener" href="https://blog.csdn.net/zdt2018210321/article/details/133018783">发现</a>，在我的科学问题背景下，这个自行编码的四维向量似乎处在软标签和多标签的中间。举例说明：每个位点有两个信息点，对于这些信息点，会有四种类别。当一个位点的两个信息点同属一个类别（假设这个类别对应向量的第一维），则编码该位点为[1,0,0,0]；但当一个位点的两个信息点分属两个类别（假设分属向量第一二维），则编码该位点为[0.5,0.5,0,0]。既不是传统多标签的独立多元标签，也不是传统软标签的用概率分布表示属于某个类别的置信度（因为[0.5,0.5,0,0]是表示两个信息点分属两个类别，而不是单属于这两个类别其中的某一个的概率是0.5）（好绕，这对吗）（果然这个策略很怪），而是一种经过归一化的多标签（？），考虑了多类别之间比例的问题？</p>
+<p>说了那么多，其实意思就是纠结了一下为什么用交叉熵做损失函数。</p>
+</blockquote>
+<p>最开始遇到的问题是：算出来的交叉熵损失值是很小的负值，是很小的很小，seriously。</p>
+<p>自己魔改了什么：改了一个适配四维向量的DatacollatorforMaskedLM，主要改动点：继承原本对token
+id的处理方法，把未经掩码的向量对应的label（说到datacollator就忍不住用label，，为了和代码一致嘛，其实和本文里的target一个意思）改成[-100,-100,-100,-100]。</p>
+<p>搜索后发现问题：输入为token id情况里，分类target为hard
+target，可以使用cel里的ignore_index参数来设置一个特定的数字，使得分类target为这个数字的输入不参与损失值和梯度的计算，以此在损失值计算中屏蔽target被datacollator设为-100的未经掩码token，达到只计算被掩码token的损失值的目标。但cel的ignore_index参数不适用与分类target为soft
+target的情况（part
+1/2），所以将target为[-100,-100,-100,-100]的未经掩码向量也纳入了损失值计算的部分，计算出来的损失值异常小，也进一步影响了梯度计算。</p>
+<p>解决问题：默认的cel损失值是由target非ignore_index的样本计算平均值得到的。为了未经掩码向量排除在损失值和梯度计算外，设置cel参数使其输出每个样本的损失值，去掉未经掩码向量的部分，再手动求平均（part
+3）。</p>
+<h2 id="你咋了">-100你咋了</h2>
+<p>又在用预设的向量做预训练（后续发现此技效果不止一般，简直是拖累，呵）。最开始试着预训练了几个epoch，发现loss值竟然是很小的负值……？完全困惑，根据交叉熵的公式正常来说不应该有负值啊！后来想了一圈发现自己之前改DatacollatorforMaskedLM的时候直接继承了token
+id里的思路：把没有被掩码的token对应的labels换成-100。虽然因为数学很差没有敏锐地发现这里的相关性，但之前用token
+id策略的时候也没有细想过自己从哪里复制下来的代码里为什么datacollator里要把没有被掩码的token对应的labels换成-100（甚至女孩一开始不是调用已有的库而是把源码复制下来自己改过来适配其他模型的，之后要用到时居然对原理一无所知y
+girrrrl y），所以只是出于好奇去搜索了一下，才发现：</p>
+<blockquote>
+<p><a
+target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html#torch.nn.CrossEntropyLoss">torch.nn.CrossEntropyLoss(weight=None,
+size_average=None, ignore_index=-100, reduce=None, reduction='mean',
+label_smoothing=0.0)</a></p>
+</blockquote>
+<p>这里交叉熵函数里有一个ignore_index的参数，文档中对这个参数的描述如下：</p>
+<blockquote>
+<p><strong>ignore_index</strong> (<a
+target="_blank" rel="noopener" href="https://docs.python.org/3/library/functions.html#int"
+title="(in Python v3.13)"><em>int</em></a>, <em>optional</em> ) –
+Specifies a target value that is ignored and does not contribute to the
+input gradient. When <code>size_average</code> is <code>True</code>, the
+loss is averaged over non-ignored targets. Note that
+<code>ignore_index</code> is only applicable when the target contains
+class indices.</p>
+<p>注：size_average参数已弃用，默认为True</p>
+</blockquote>
+<p>所以计算交叉熵时，这些label为-100的部分不会参与梯度计算，只计算label为其他值的loss值，最后求并输出这些loss值的平均值(reduction这个参数默认为mean)。也就是说label为ignore_index值(未被掩码的token)的部分是不会参与到后续反向传播计算里面的，正好契合了masked
+language
+modeling里只关心被掩码的token的loss有没有下降的任务目标。需要注意的是最后一句里说到的：ignore_index这个参数只在目标(是文档里提到的target，但前文描述时用了labels来描述，因为我改datacollator的代码里面用的变量就这个名字啊、好的为了保持一致性后面还是都用target吧)包含类别索引时才适用（这种target在后续的搜索结果中被冠以一个更专业的名词：hard
+target）。一个例子：假设语言模型最后输出的掩码位置上的logit是vocab_size维度的一个向量，pt的交叉熵函数会计算这个logit和这个掩码位置上原本的token
+id之间的交叉熵值，来评估模型预测的和真实值之间的差距。例子里的token
+id就是hard target，是对应token在vocab里的索引，只有一个数字。</p>
+<p>而我的情况是，target是向量而非索引，这就意味着我的target不会是hard
+target了。因此，ignore_index这个参数就失效了，导致如下情况：我以为把未被掩码的向量对应的target修改成[-100,-100,-100,-100]之后pt的交叉熵函数就不会考虑这部分向量，但其实这部分向量在loss计算里大放异彩从而导致了loss值为超小负值（绝对值大概八位数吧呵呵什么时候8figure可以用来描述我的身家而非我的模型loss值呢、、、）服了。</p>
+<h2 id="搜索中">搜索中</h2>
+<p>其实当时也不知道该怎么搜索，可能就直接搜了cross entropy
+loss/pytorch/ignore
+index这几个词吧，搜到了第二个参考。其实现在回看发现这篇就已经全面解决我的问题了，但当时女孩的问题是根本不知道自己的问题是什么呵呵、所以就放下了继续搜搜。经过了再后面两篇帖子，女孩逛到了cel的issue
+11959页，然后津津有味地看起来了。（have 2
+admit我还没太理解github里issue的大概逻辑，就是怎么完整地梳理一个功能从一开始提出issue到那些开发人员在issue页面大讨论到最后功能落地这个过程呢？我总是找不到最源头那个issue在哪，但慢慢来吧）</p>
+<p>让dsr1总结了一下issue11959大家都在干嘛，ds就在后台我们掌声把ta请出来吧：</p>
+<blockquote>
+<p>这个Issue是关于在PyTorch的
+<code>nn.CrossEntropyLoss</code>中增加对<strong>软目标分布（Soft Target
+Distribution）</strong>的支持。以下是关键点总结：</p>
+<hr />
+<h3 id="问题描述"><strong>问题描述</strong></h3>
+<ul>
+<li><strong>当前功能</strong> ：PyTorch的交叉熵损失
+(<code>nn.CrossEntropyLoss</code>) 仅支持 <strong>硬目标</strong>
+（即目标为类别索引，如 <code>[0, 2, 1]</code>）。</li>
+<li><strong>用户需求</strong> ：希望在训练时支持
+<strong>软目标分布</strong> （即目标为概率分布，如
+<code>[[0.8, 0.1, 0.1], [0.2, 0.7, 0.1]]</code>）。软目标在防止过拟合、知识蒸馏等场景中非常有用。</li>
+</ul>
+<hr />
+<h3 id="数学原理"><strong>数学原理</strong></h3>
+<ul>
+<li><strong>硬目标</strong> ：损失为负对数似然，即
+<code>-y_c</code>，其中 <code>c</code> 是目标类别的索引。</li>
+<li><strong>软目标</strong> ：实际是计算模型输出分布
+(<code>softmax(x)</code>) 和目标分布 <code>p</code> 的
+<strong>KL散度</strong> ，公式为：</li>
+</ul>
+<pre class="codeWrapper" data-code-lang=""><pre class="hljs"><code class="">Loss = -Σ p_i * log(softmax(x_i)) = Σ p_i * (log(p_i) - y_i) + constant
+  </code></pre></pre>
+<p>其中 <code>y_i = log_softmax(x_i)</code>。优化时常数项可忽略。</p>
+<hr />
+<h3 id="实现讨论"><strong>实现讨论</strong></h3>
+<ul>
+<li><strong>现有实现的限制</strong> ：<code>CrossEntropyLoss</code>
+假设目标是类别索引（形状为 <code>(N,)</code>的整数张量）。</li>
+<li><strong>扩展方案</strong> ：</li>
+</ul>
+<ol type="1">
+<li><strong>修改现有损失函数</strong> ：允许目标张量为形状
+<code>(N, C)</code>的概率分布（浮点张量），通过检查目标形状或类型自动切换模式。</li>
+<li><strong>新增单独损失函数</strong> ：例如
+<code>CrossEntropyLossWithSoftLabels</code>，专门处理软目标。</li>
+</ol>
+<ul>
+<li><strong>争议点</strong> ：</li>
+<li><strong>命名与计算对齐</strong>
+：交叉熵与KL散度的差异（是否丢弃常数项）。真实交叉熵不含常数项，而KL散度会包含，但这不影响梯度计算。</li>
+<li><strong>兼容性</strong> ：原有参数如 <code>ignore_index</code>
+在软目标下的行为无意义，需在文档中说明。</li>
+<li><strong>用户习惯</strong> ：Keras等框架通过不同函数区分（如
+<code>CategoricalCrossentropy</code> 和
+<code>SparseCategoricalCrossentropy</code>），PyTorch是否应保持一致性？</li>
+</ul>
+<hr />
+<h3 id="开发决策"><strong>开发决策</strong></h3>
+<ul>
+<li><strong>最终方案</strong> ：在原有 <code>CrossEntropyLoss</code>
+中扩展支持软目标，根据目标张量的形状（<code>(N,)</code> vs
+<code>(N, C)</code>）自动选择模式。</li>
+<li><strong>关闭原因</strong> ：通过提交 <a
+target="_blank" rel="noopener" href="https://github.com/pytorch/pytorch/commit/a42345a">a42345a</a>
+解决了该问题，允许浮点型目标张量直接输入以实现软目标。</li>
+</ul>
+<hr />
+<h3 id="代码示例用户实现"><strong>代码示例（用户实现）</strong></h3>
+<p>用户提供的临时实现：</p>
+<pre class="codeWrapper" data-code-lang="python"><pre class="hljs"><code class="python">def softmax_cross_entropy_with_softtarget(input, target, reduction='mean'):
+    logprobs = torch.nn.functional.log_softmax(input, dim=1)
+    batchloss = - torch.sum(target * logprobs, dim=1)
+    if reduction == 'mean':
+        return torch.mean(batchloss)
+    elif reduction == 'sum':
+        return torch.sum(batchloss)
+    else:
+        return batchloss
+</code></pre></pre>
+<hr />
+<h3 id="总结"><strong>总结</strong></h3>
+<p>此功能已通过扩展 <code>nn.CrossEntropyLoss</code>
+实现对软目标的支持。用户可通过传入浮点型概率张量作为目标直接使用，无需额外实现。</p>
+</blockquote>
+<p>太好了ds，感谢你，请下台休息一下。其实这个issue和我的问题没啥关系，因为我就只是在知道自己用的是soft
+target的情况下无念无想地用了cel，幸好这个issue早早地就提出来了不然被这个折磨的就是我了。</p>
+<p>了解了背景之后就很好理解为什么ignore_index这个参数不能用在soft
+target上了：ignore_index是为了离散类别标签设计的。如果一个样本的标签是2，设置ignore_index=2就会跳过这个样本的损失计算，这个操作是基于离散类别和ignore_index两个整数值的直接匹配（target
+== ignore_index）。soft
+target作为概率分布，自然无法通过直接对比浮点数的概率张量和整数索引来决定是否忽略某些样本。</p>
+<h2 id="所以女孩的问题要怎么解决">所以女孩的问题要怎么解决</h2>
+<p>回看该帖发现其思路就是：输出每个样本的损失值（the unreduced
+loss），根据target值筛掉不要的“类别”，再手动求平均值。</p>
+<p>贴上这个思路算损失值的代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">loss_fn = CrossEntropyLoss(reduction=<span class="hljs-string">&#x27;none&#x27;</span>)<br>outputs = model(inputs)<br>logits = outputs[<span class="hljs-string">&#x27;logits&#x27;</span>]<br>loss = loss_fn(logits.view(-<span class="hljs-number">1</span>,logits.size(-<span class="hljs-number">1</span>)),labels.view(-<span class="hljs-number">1</span>,labels.size(-<span class="hljs-number">1</span>)))<br>loss = loss[labels.view(-<span class="hljs-number">1</span>,labels.size(-<span class="hljs-number">1</span>))[:, <span class="hljs-number">0</span>] != -<span class="hljs-number">100</span>].mean()<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>reduction =
+'none'参数：默认为mean，即对所有非ignore_index的样本求平均。none即不做reduction(聚合)处理，输出所有样本的损失。</p>
+</blockquote>
+<p>第一个loss是损失函数计算出来的形状为[批次大小*序列长度]的损失值，对应着每个向量的损失值。现在要将labels（即target）为[-100,-100,-100,-100]的未经掩码向量对应的损失值从这里去掉，再求平均值。因为前面计算loss的时候将logits和labels展平为二维张量，所以现在做布尔运算去掉相应损失值时也要把labels展平。<code>labels.view(-1,labels.size(-1))[:, 0] != -100</code>
+做了这样的操作：将形状为[批次大小，序列长度，维度]的labels展平为[批次大小*序列长度,维度]的二维张量，根据每个向量的labels的第一维是否不等于100返回一个布尔张量。这个布尔张量用于将loss里掩码的向量对应的loss值取出来（因为这些向量的labels第一维不等于-100，在布尔张量里对应True），最后取平均。</p>
+<p>多么简单的一个操作！但女孩似乎罗里吧嗦说了一大堆、算了以后有心思再改吧。</p>
+<h2 id="参考参考">参考参考</h2>
+<p>函数文档：<a
+target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html#torch.nn.CrossEntropyLoss">torch.nn.CrossEntropyLoss</a></p>
+<p>最开始意欲参考但没搞懂的帖，最后发现就是答案：<a
+target="_blank" rel="noopener" href="https://discuss.pytorch.org/t/cross-entropy-loss-ignore-index/146784/">pytorch
+forum 146784 cross entropy loss ignore index</a></p>
+<p>以为和我的问题一样准备欣喜若狂然后发现不是，但还是给了一些继续搜索的启发：<a
+target="_blank" rel="noopener" href="https://datascience.stackexchange.com/questions/45285/loss-function-for-probability-regression">stackexchange
+45285 loss function for probability regression</a></p>
+<p>引导我去看相关issue的：<a
+target="_blank" rel="noopener" href="https://stackoverflow.com/questions/68907809/soft-cross-entropy-in-pytorch">stackoverflow
+68907809 soft cross entropy in pytorch</a></p>
+<p>issues：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/pytorch/pytorch/issues/11959">11959(Sep
+22 2018，在这个issue下提到了最后解决的实现)</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/pytorch/pytorch/issues/7455">7455(May 10
+2018，一个更早的issue，讨论了很多)</a></p>
+<p>plus: cross entropy loss mean weight</p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/pytorch/pytorch/issues/31295">31295</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/note/" class="category-chain-item">note</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>向量的掩码训练 -- 交叉熵&amp;软标签</div>
+      <div>https://patchaven.github.io/2025/03/11/cel_smooth_labels/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>ph-bear</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月11日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/02/08/robertawhy/" title="roberta模型你在干嘛">
+                        <span class="hidden-mobile">roberta模型你在干嘛</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
